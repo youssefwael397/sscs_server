@@ -34,13 +34,14 @@ api.add_resource(Users, '/api/users')
 api.add_resource(User, '/api/users/<int:user_id>')
 
 
-registered_faces_path = 'static/users/'
-names, faces_paths = get_faces_paths_and_names(registered_faces_path)
-faces = get_faces(faces_paths)
+# registered_faces_path = 'static/users/'
+# names, faces_paths = get_faces_paths_and_names(registered_faces_path)
+# faces = get_faces(faces_paths)
 
-names, count = count_faces_from_video('static/users/elharam/elharam.webm', faces, names)
-print("names: ", names)
-print("count: ", count)
+# names, count = count_faces_from_video('static/users/elharam/elharam.webm', faces, names)
+# print("names: ", names)
+# print("count: ", count)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

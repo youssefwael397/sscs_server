@@ -7,10 +7,12 @@ import bcrypt
 import werkzeug
 import uuid
 import os
+import shutil
 
 registered_faces_path = 'static/users/'
 names, faces_paths = get_faces_paths_and_names(registered_faces_path)
 faces = get_faces(faces_paths)
+
 
 class Users(Resource):
     def get(self):
@@ -55,7 +57,18 @@ class UserRegister(Resource):
         # training the face_recognition model
         # by extract face images from
         # the requested video captured by the client
-        extract_and_save_faces(f"static/users/{username}", file_name)
+        is_valid = extract_and_save_faces(
+            f"static/users/{username}", file_name)
+        print("is_valid : ", is_valid)
+
+        # if not is_valid:
+        #     try:
+        #         shutil.rmtree(f'static/users/{username}')
+        #     except: 
+        #         print("the directory does not exist")   
+
+        #     return {message: 'You didn\'t show your face purely.'}, 400
+
 
         # modifying the data before save_to_db
         data = {
@@ -213,7 +226,7 @@ class FaceCounter(Resource):
 
     def post(self):
         data = UserRegister.parser.parse_args()  # user register data
-    
+
         username = data['video']
         file_name = f"{username}.webm"  # uuid.uuid4().hex
 

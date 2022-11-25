@@ -25,10 +25,12 @@ def extract_and_save_faces(dir_path, file_name):
     vc = cv2.VideoCapture(f'{dir_path}/{file_name}')
 
     count = 0
+    max_count = 21
+
     while (vc.isOpened()):
         ret, frame = vc.read()
 
-        if not ret or count == 21:
+        if not ret or count == max_count:
             break
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -41,3 +43,6 @@ def extract_and_save_faces(dir_path, file_name):
     # close the video capture
     cv2.destroyAllWindows()
     vc.release()
+    
+
+    return count == max_count
