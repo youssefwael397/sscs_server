@@ -11,6 +11,7 @@ def delete_logo(logo):
     if logo and os.path.exists(f"static/users/logo/{logo}"):
         os.remove(f"static/users/logo/{logo}")
 
+
 def save_file(file, file_name, path):
     file.save(f"{path}/{file_name}")
 
@@ -33,6 +34,7 @@ def extract_and_save_faces(dir_path, file_name):
         if not ret or count == max_count:
             break
 
+        # BGR => Blue Green Red
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         detected_faces = face_recognition.face_locations(frame_rgb)
 
@@ -43,6 +45,5 @@ def extract_and_save_faces(dir_path, file_name):
     # close the video capture
     cv2.destroyAllWindows()
     vc.release()
-    
 
     return count == max_count

@@ -9,11 +9,15 @@ from resources.user import UserRegister, Users, User, ChangePassword, CreateStat
 from resources.helloWorld import HelloWorld
 from utils.file_handler import extract_and_save_faces
 from utils.face_detect import get_faces_paths_and_names, get_faces, count_faces_from_video
+from flask_socketio import SocketIO, emit, send
 
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
+
+socketio = SocketIO(app, cors_allowed_origins='*')
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -33,6 +37,19 @@ api.add_resource(UserRegister, '/api/register')
 api.add_resource(Users, '/api/users')
 api.add_resource(User, '/api/users/<int:user_id>')
 
+# socketio events
+@socketio.on('connect')
+def test_connect():
+    print('Pyramids')
+    socketio.emit('after connect', {'data': 'Pyramids socket'})
+
+
+@socketio.on('message')
+def send_message():
+    print("send_message")
+#     emit('my response', json)
+
+
 
 # registered_faces_path = 'static/users/'
 # names, faces_paths = get_faces_paths_and_names(registered_faces_path)
@@ -44,4 +61,5 @@ api.add_resource(User, '/api/users/<int:user_id>')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    socketio.run(app, debug=True)
+    # app.run(host='0.0.0.0', debug=True)
