@@ -44,10 +44,10 @@ def test_connect():
     socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
-@socketio.on('json')
-def handle_my_custom_event(json):
-    print('received json: ' + str(json))
-
+@socketio.on('face_recognition')
+def handle_find_face(json):
+    print(json)
+    socketio.emit('response', {'connected': True, 'frame': json})
 
 
 
