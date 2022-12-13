@@ -44,10 +44,9 @@ def test_connect():
     socketio.emit('after connect', {'data': 'Pyramids socket'})
 
 
-@socketio.on('message')
-def send_message():
-    print("send_message")
-#     emit('my response', json)
+@socketio.on('my event')
+def handle_my_custom_event(json):
+    print('received json: ' + str(json))
 
 
 
