@@ -41,12 +41,12 @@ api.add_resource(User, '/api/users/<int:user_id>')
 @socketio.on('connect')
 def test_connect():
     print('Pyramids')
+    socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
 @socketio.on('json')
 def handle_my_custom_event(json):
     print('received json: ' + str(json))
-    # socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
 
