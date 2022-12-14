@@ -3,6 +3,7 @@ import os
 import glob
 import cv2
 import numpy as np
+from flask import Response
 
 
 def get_faces_paths_and_names(images_path):
@@ -86,6 +87,64 @@ def get_detected_name(results, names):
         return names[round(median_index)]
 
 
+def testRTC(socketio):
+    vc = cv2.VideoCapture(0)
+
+    while True:
+        ret, frame = vc.read()
+        if not ret:
+            break
+        socketio.emit('rtc', {'name': 'pyramids'})
+
+
+def open_RTC(faces, names, socketio):
+    vc = cv2.VideoCapture(0)
+    print('open_RTC')
+
+    while True:
+        ret, frame = vc.read()
+        if not ret:
+            break
+
+        # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # detected_faces = face_recognition.face_locations(frame_rgb)
+
+        # for detected_face in detected_faces:
+        #     top, right, bottom, left = detected_face
+        #     cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+        #     encoding = face_recognition.face_encodings(
+        #         frame_rgb, [detected_face])[0]
+
+        #     results = face_recognition.compare_faces(faces, encoding)
+
+        #     name = 'Unknown'
+        #     face_distance = face_recognition.face_distance(faces, encoding)
+        #     best_match_index = np.argmin(face_distance)
+
+        #     if results[best_match_index]:
+        #         name = names[best_match_index]
+
+        #     cv2.putText(frame, name, (left, bottom + 25),
+        #                 cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+
+        print(frame)
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+
+        # yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        socketio.emit('rtc', {"frame": frame})
+
+        # cv2.imshow('video stream', frame)
+
+        k = cv2.waitKey(1)
+        if ord('q') == k:
+            break
+
+    # close the video capture
+    cv2.destroyAllWindows()
+    vc.release()
+
+
 def open_face_detect_cam(faces, names):
     vc = cv2.VideoCapture(0)
 
@@ -153,13 +212,12 @@ def count_faces_from_video(video_path, faces, known_names):
 
             is_exists = False
             for n in names:
-               if n == name:
-                is_exists = True
-            
+                if n == name:
+                    is_exists = True
+
             if not is_exists:
                 names.append(name)
                 count = count + 1
-
 
             # cv2.putText(frame, name, (left, bottom + 25),
             #             cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)

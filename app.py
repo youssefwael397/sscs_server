@@ -8,8 +8,9 @@ from models.user import UserModel
 from resources.user import UserRegister, Users, User, ChangePassword, CreateStaticUser
 from resources.helloWorld import HelloWorld
 from utils.file_handler import extract_and_save_faces
-from utils.face_detect import get_faces_paths_and_names, get_faces, count_faces_from_video
+from utils.face_detect import get_faces_paths_and_names, get_faces, count_faces_from_video, open_face_detect_cam, testRTC, open_RTC
 from flask_socketio import SocketIO, emit, send
+from flask import Response
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -37,18 +38,26 @@ api.add_resource(UserRegister, '/api/register')
 api.add_resource(Users, '/api/users')
 api.add_resource(User, '/api/users/<int:user_id>')
 
+registered_faces_path = 'static/users/'
+names, faces_paths = get_faces_paths_and_names(registered_faces_path)
+faces = get_faces(faces_paths)
+
 # socketio events
+
+
 @socketio.on('connect')
 def test_connect():
     print('Pyramids')
-    socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
+    open_RTC(faces, names, socketio)
+    
+    # socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
 @socketio.on('face_recognition')
 def handle_find_face(json):
+    open_face_detect_cam()
     print(json)
     socketio.emit('response', {'connected': True, 'frame': json})
-
 
 
 # registered_faces_path = 'static/users/'
