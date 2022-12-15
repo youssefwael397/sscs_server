@@ -8,10 +8,8 @@ from models.user import UserModel
 from resources.user import UserRegister, Users, User, ChangePassword, CreateStaticUser
 from resources.helloWorld import HelloWorld
 from utils.file_handler import extract_and_save_faces
-from utils.face_detect import get_faces_paths_and_names, get_faces, count_faces_from_video, open_face_detect_cam, testRTC, open_RTC
+from utils.face_detect import get_faces_paths_and_names, get_faces, open_face_detect_cam, open_RTC, close_stream
 from flask_socketio import SocketIO, emit, send
-from flask import Response
-
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -49,8 +47,13 @@ faces = get_faces(faces_paths)
 def test_connect():
     print('Pyramids')
     open_RTC(faces, names, socketio)
-    
     # socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
+
+
+@socketio.on('close_stream')
+def handle_find_face():
+    close_stream()
+    # socketio.emit('response', {'connected': True, 'frame': json})
 
 
 @socketio.on('face_recognition')

@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from flask import Response
 
+camera = None
 
 def get_faces_paths_and_names(images_path):
     names = []
@@ -99,50 +100,58 @@ def testRTC(socketio):
 
 def open_RTC(faces, names, socketio):
     vc = cv2.VideoCapture(0)
+    camera = vc
     print('open_RTC')
 
     while True:
-        ret, frame = vc.read()
+        ret, frame1 = vc.read()
         if not ret:
             break
 
-        # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # detected_faces = face_recognition.face_locations(frame_rgb)
+        frame_rgb = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
+        detected_faces = face_recognition.face_locations(frame_rgb)
 
-        # for detected_face in detected_faces:
-        #     top, right, bottom, left = detected_face
-        #     cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
-        #     encoding = face_recognition.face_encodings(
-        #         frame_rgb, [detected_face])[0]
+        for detected_face in detected_faces:
+            top, right, bottom, left = detected_face
+            cv2.rectangle(frame1, (left, top), (right, bottom), (255, 0, 0), 2)
+            encoding = face_recognition.face_encodings(
+                frame_rgb, [detected_face])[0]
 
-        #     results = face_recognition.compare_faces(faces, encoding)
+            results = face_recognition.compare_faces(faces, encoding)
 
-        #     name = 'Unknown'
-        #     face_distance = face_recognition.face_distance(faces, encoding)
-        #     best_match_index = np.argmin(face_distance)
+            name = 'Unknown'
+            face_distance = face_recognition.face_distance(faces, encoding)
+            best_match_index = np.argmin(face_distance)
 
-        #     if results[best_match_index]:
-        #         name = names[best_match_index]
+            if results[best_match_index]:
+                name = names[best_match_index]
 
-        #     cv2.putText(frame, name, (left, bottom + 25),
-        #                 cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+            # print(name)
+            cv2.putText(frame1, name, (left, bottom + 25),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
 
-        print(frame)
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
+        frame = cv2.imencode('.jpg', frame1)[1]
+        frame = frame.tobytes()
 
-        # yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-        socketio.emit('rtc', {"frame": frame})
+        # print('message received!!!')
+        # print(frame)
 
-        # cv2.imshow('video stream', frame)
+        socketio.emit('rtc', frame)
+        socketio.sleep(0)
 
-        k = cv2.waitKey(1)
-        if ord('q') == k:
-            break
+        # k = cv2.waitKey(1)
+        # if ord('q') == k:
+        #     break
 
     # close the video capture
+    # cv2.destroyAllWindows()
+    # vc.release()
+
+
+def close_stream():
+    # close the video capture
     cv2.destroyAllWindows()
-    vc.release()
+    camera.release()
 
 
 def open_face_detect_cam(faces, names):
