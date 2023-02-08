@@ -5,10 +5,15 @@ from config import mysql_uri
 from db import db
 # import models to create at runtime
 from models.user import UserModel
-from resources.user import UserRegister, Users, User, ChangePassword, CreateStaticUser
+from models.warning import WarningModel
+from models.user_warning import UserWarningModel
+from resources.user import UserRegister, Users, User
+from resources.warning import Warnings, Warning, CreateWarning
 from resources.helloWorld import HelloWorld
+from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning
 from utils.file_handler import extract_and_save_faces
-from utils.face_detect import get_faces_paths_and_names, get_faces, open_face_detect_cam, open_RTC, close_stream
+from utils.face_detect import get_faces_paths_and_names, get_faces, open_face_detect_cam, open_RTC_violence
+from utils.date_funcs import current_datetime
 from flask_socketio import SocketIO, emit, send
 
 app = Flask(__name__, static_url_path='/static')
@@ -16,7 +21,6 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
 
 socketio = SocketIO(app, cors_allowed_origins='*')
-
 
 app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -31,45 +35,29 @@ def create_tables():
 # api routes
 api.add_resource(HelloWorld, '/')  # base api url http://localhost:5000/
 # Users
-# api.add_resource(CreateStaticUser, '/api/static/user/create') # for test
 api.add_resource(UserRegister, '/api/register')
 api.add_resource(Users, '/api/users')
 api.add_resource(User, '/api/users/<int:user_id>')
-
-registered_faces_path = 'static/users/'
-names, faces_paths = get_faces_paths_and_names(registered_faces_path)
-faces = get_faces(faces_paths)
-
-# socketio events
-
-
-@socketio.on('connect')
-def test_connect():
-    print('Pyramids')
-    open_RTC(faces, names, socketio)
-    # socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
-
-
-@socketio.on('close_stream')
-def handle_find_face():
-    close_stream()
-    # socketio.emit('response', {'connected': True, 'frame': json})
-
-
-@socketio.on('face_recognition')
-def handle_find_face(json):
-    open_face_detect_cam()
-    print(json)
-    socketio.emit('response', {'connected': True, 'frame': json})
-
+# warnings
+api.add_resource(Warnings, '/api/warnings')
+api.add_resource(CreateWarning, '/api/warnings/create')
+api.add_resource(Warning, '/api/warnings/<int:warning_id>')
+# user_warnings
+api.add_resource(UserWarnings, '/api/user_warnings')
+api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
+api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
 
 # registered_faces_path = 'static/users/'
 # names, faces_paths = get_faces_paths_and_names(registered_faces_path)
 # faces = get_faces(faces_paths)
 
-# names, count = count_faces_from_video('static/users/elharam/elharam.webm', faces, names)
-# print("names: ", names)
-# print("count: ", count)
+# socketio events
+@socketio.on('connect')
+def test_connect():
+    print('Pyramids')
+    print(current_datetime())
+    open_RTC_violence(socketio)
+    socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
 if __name__ == '__main__':
