@@ -9,11 +9,6 @@ import uuid
 import os
 import shutil
 
-registered_faces_path = 'static/users/'
-names, faces_paths = get_faces_paths_and_names(registered_faces_path)
-faces = get_faces(faces_paths)
-
-
 class Users(Resource):
     def get(self):
         return {"users": [user.json() for user in UserModel.find_all()]}
@@ -64,11 +59,10 @@ class UserRegister(Resource):
         # if not is_valid:
         #     try:
         #         shutil.rmtree(f'static/users/{username}')
-        #     except: 
-        #         print("the directory does not exist")   
+        #     except:
+        #         print("the directory does not exist")
 
         #     return {message: 'You didn\'t show your face purely.'}, 400
-
 
         # modifying the data before save_to_db
         data = {

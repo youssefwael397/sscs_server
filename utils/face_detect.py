@@ -172,14 +172,44 @@ def open_RTC_violence(socketio):
         predictions = model.predict(np.expand_dims(img, axis=0), verbose=0)
         preds = predictions > 0.5
 
+        # 1
         if len(frames_list) < 5:
             frames_list.append(preds[0][0])
+        # 1
         else:
             frames_list.pop(0)
             frames_list.append(preds[0][0])
 
+        # 1
         if preds and v_count != max_v:
             v_count += 1
+
+        # 1
+        if not isRecording and max_v == v_count:
+            file_name = uuid.uuid4()
+            writer = cv2.VideoWriter(
+                f'{warning_path}{file_name}.mp4', cv2.VideoWriter_fourcc(*'DIVX'), 5, (width, height))
+            FR_thread = FaceRecognition(f'{file_name}')
+            start_time = time.time()
+            isRecording = True
+
+        # 1
+        if isRecording:
+            # 2
+            if time.time() - start_time > 10:
+                print(frames_list)
+                # 3
+                if np.sum(frames_list) > 1:
+                    start_time = time.time()
+                    writer.write(frame)
+                # 3
+                else:
+                    writer.release()
+                    v_count = 0
+                    isRecording = False
+            # 2
+            else:
+                writer.write(frame)
 
             # if not isRecording and max_v == v_count:
             #     vid_uuid = uuid.uuid4()
@@ -203,47 +233,45 @@ def open_RTC_violence(socketio):
             # playsound('/static/others/alarm-car-or-home.wav')
             # print('playing sound using  playsound')
 
-            if not isRecording and max_v == v_count:
+            # if not isRecording and max_v == v_count:
 
-                vid_uuid = uuid.uuid4()
-                vid_path = f'{warning_path}{vid_uuid}.mp4'
-                print(vid_uuid)
-                # save the detected violence video to /static/warnings/
-                writer = cv2.VideoWriter(
-                    vid_path, cv2.VideoWriter_fourcc(*'DIVX'), 20, (width, height))
-                # implement face detection and recognition for saved video 
-                FR_thread = FaceRecognition(f'{vid_path}')
+            #     vid_uuid = uuid.uuid4()
+            #     vid_path = f'{warning_path}{vid_uuid}.mp4'
+            #     print(vid_uuid)
+            #     # save the detected violence video to /static/warnings/
+            #     writer = cv2.VideoWriter(
+            #         vid_path, cv2.VideoWriter_fourcc(*'DIVX'), 20, (width, height))
+            #     # implement face detection and recognition for saved video
+            #     # FR_thread = FaceRecognition(f'{vid_path}')
 
-                start_time = time.time()
-                isRecording = True
+            #     start_time = time.time()
+            #     isRecording = True
 
-            if isRecording:
-                if time.time() - start_time > 10:
-                    print(frames_list)
-                    if np.sum(frames_list) > 1:
-                        start_time = time.time()
-                        writer.write(frame)
-                else:
-                    writer.release()
-                    v_count = 0
-                    isRecording = False
-                    FR_thread.start()
-
-            else:
-                writer.write(frame)
+            # if isRecording:
+            #     if time.time() - start_time > 10:
+            #         print(frames_list)
+            #         if np.sum(frames_list) > 1:
+            #             start_time = time.time()
+            #             writer.write(frame)
+            #     else:
+            #         writer.release()
+            #         v_count = 0
+            #         isRecording = False
+            #         # FR_thread.start()
+            # else:
+            #     writer.write(frame)
 
         cv2.putText(frame, f'Violence : {preds[0][0]}', (10, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, 2)
-        # cv2.imshow('video stream', frame)
 
         frame = cv2.imencode('.jpg', frame)[1]
         frame = frame.tobytes()
         socketio.emit('rtc', frame)
         socketio.sleep(0)
 
-        k = cv2.waitKey(1)
-        if ord('q') == k:
-            break
+        # k = cv2.waitKey(1)
+        # if ord('q') == k:
+        #     break
 
 
 def open_face_detect_cam(faces, names):
