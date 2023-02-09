@@ -2,8 +2,9 @@ from playsound import playsound
 import face_recognition
 from flask import Response
 from keras.models import load_model
-from utils.date_funcs import current_datetime
+# from date_funcs import current_datetime
 from models.warning import WarningModel
+from faceRecThread import FaceRecognition
 import numpy as np
 import os
 import glob
@@ -157,8 +158,8 @@ def open_RTC_violence(socketio):
     start_time = None
     vc = cv2.VideoCapture(0)
     isRecording = False
-    W = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
-    H = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_number = 0
     while True:
         ret, frame = vc.read()
@@ -180,10 +181,10 @@ def open_RTC_violence(socketio):
         if preds and v_count != max_v:
             v_count += 1
 
-        if not isRecording and max_v == v_count:
-            vid_uuid = uuid.uuid4()
-            vid_path = f'{warning_path}{vid_uuid}.mp4'
-            print(vid_uuid)
+            # if not isRecording and max_v == v_count:
+            #     vid_uuid = uuid.uuid4()
+            #     vid_path = f'{warning_path}{vid_uuid}.mp4'
+            #     print(vid_uuid)
             # data = {
             #     "date": f"{current_datetime()}",
             #     "status": "Violence",
@@ -192,7 +193,6 @@ def open_RTC_violence(socketio):
             # }
             # print(data)
             # warn = WarningModel(**data)
-
 
             # try:
             #     warn.save_to_db()
@@ -203,22 +203,32 @@ def open_RTC_violence(socketio):
             # playsound('/static/others/alarm-car-or-home.wav')
             # print('playing sound using  playsound')
 
-            writer = cv2.VideoWriter(
-                vid_path, cv2.VideoWriter_fourcc(*'DIVX'), 20, (W, H))
-            start_time = time.time()
-            isRecording = True
-            print('saving warning video')
+            if not isRecording and max_v == v_count:
 
-        if isRecording:
-            if time.time() - start_time > 10:
-                print(frames_list)
-                if np.sum(frames_list) > 1:
-                    start_time = time.time()
-                    writer.write(frame)
+                vid_uuid = uuid.uuid4()
+                vid_path = f'{warning_path}{vid_uuid}.mp4'
+                print(vid_uuid)
+                # save the detected violence video to /static/warnings/
+                writer = cv2.VideoWriter(
+                    vid_path, cv2.VideoWriter_fourcc(*'DIVX'), 20, (width, height))
+                # implement face detection and recognition for saved video 
+                FR_thread = FaceRecognition(f'{vid_path}')
+
+                start_time = time.time()
+                isRecording = True
+
+            if isRecording:
+                if time.time() - start_time > 10:
+                    print(frames_list)
+                    if np.sum(frames_list) > 1:
+                        start_time = time.time()
+                        writer.write(frame)
                 else:
                     writer.release()
                     v_count = 0
                     isRecording = False
+                    FR_thread.start()
+
             else:
                 writer.write(frame)
 
