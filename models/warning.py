@@ -30,6 +30,9 @@ class WarningModel(db.Model):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
+    def find_by_date(cls, date):
+        return cls.query.filter_by(date=date).first()
+    @classmethod
     def find_all(cls):
         return cls.query.all()
 

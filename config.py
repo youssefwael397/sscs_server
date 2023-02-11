@@ -1,4 +1,3 @@
-# from flask_restful import fields
 import pymysql
 import os
 

@@ -1,8 +1,9 @@
 from db import db
 import os
 
+
 class UserModel(db.Model):
-    __tablename__='users'
+    __tablename__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -11,15 +12,15 @@ class UserModel(db.Model):
     def __init__(self, username, email):
         self.username = username
         self.email = email
-    
+
     def json(self):
         return {
-            'id':self.id,
+            'id': self.id,
             'username': self.username,
             'email': self.email,
         }
-    
-    @classmethod    
+
+    @classmethod
     def find_by_username(cls, username):
         return cls.query.filter_by(username=username).first()
 
@@ -32,10 +33,15 @@ class UserModel(db.Model):
         if self.find_by_username(user['username']) or self.find_by_email(user['email']):
             return True
         return False
-    
-    @classmethod    
+
+    @classmethod
     def find_by_id(cls, _id):
        return cls.query.filter_by(id=_id).first()
+
+    @classmethod    
+    def find_by_name(cls, name):
+       return cls.query.filter_by(name=name).first()
+
 
     @classmethod
     def find_all(cls):

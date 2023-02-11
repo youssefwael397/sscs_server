@@ -1,47 +1,14 @@
-from playsound import playsound
-import face_recognition
-from flask import Response
 from keras.models import load_model
-# from date_funcs import current_datetime
 from models.warning import WarningModel
-from faceRecThread import FaceRecognition
+from utils.date_funcs import current_datetime
+from utils.faceRecThread import FaceRecognition #error message
+import face_recognition
 import numpy as np
-import os
-import glob
 import cv2
 import time
 import uuid
 
-model = load_model('utils/violence_model.h5')
-print("loading model")
 warning_path = "static/warnings/"
-
-
-def get_faces_paths_and_names(images_path):
-    names = []
-    faces_paths = []
-
-    for name in os.listdir(images_path):
-        images_mask = '%s%s/*.jpg' % (images_path, name)
-        images_paths = glob.glob(images_mask)
-        faces_paths += images_paths
-        names += [name for x in images_paths]
-
-    return names, faces_paths
-
-
-def get_face_encodings(img_path):
-    image = face_recognition.load_image_file(img_path)
-    encoding = face_recognition.face_encodings(image)
-    # print("encoding: " , encoding)
-    return encoding[0]
-
-
-def get_faces(faces_paths):
-    # faces = []
-    faces = [get_face_encodings(img_path) for img_path in faces_paths]
-    return faces
-
 
 def open_cam():
     vc = cv2.VideoCapture(0)
@@ -151,16 +118,19 @@ def open_RTC(faces, names, socketio):
 
 
 def open_RTC_violence(socketio):
+    model = load_model('utils/violence_model.h5')
+    print("loading model")
 
     max_v = 5
     v_count = 0
+    frame_number = 0
     frames_list = []
     start_time = None
-    vc = cv2.VideoCapture(0)
     isRecording = False
+    vc = cv2.VideoCapture(0)
     width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    frame_number = 0
+
     while True:
         ret, frame = vc.read()
         frame_number += 1
@@ -187,9 +157,29 @@ def open_RTC_violence(socketio):
         # 1
         if not isRecording and max_v == v_count:
             file_name = uuid.uuid4()
+            ct = current_datetime()
+            print("file_name: ", file_name)
+            print("ct: ", ct)
+            # save warning video file to /static/warning
             writer = cv2.VideoWriter(
                 f'{warning_path}{file_name}.mp4', cv2.VideoWriter_fourcc(*'DIVX'), 5, (width, height))
-            FR_thread = FaceRecognition(f'{file_name}')
+            print("warning video saved successfully")
+            # save the video to warnings table to db
+            data = {
+                "status": "Violence",
+                "video_name": f"{file_name}.mp4",
+                "date": ct,
+            }
+
+            warn = WarningModel(**data)
+            try:
+                warn.save_to_db()
+                print("warning saved to db successfully")
+
+            except:
+                print("Error in save_to_db Warning video")
+
+            # FR_thread = FaceRecognition(f'{file_name}.mp4,')
             start_time = time.time()
             isRecording = True
 
@@ -207,6 +197,7 @@ def open_RTC_violence(socketio):
                     writer.release()
                     v_count = 0
                     isRecording = False
+                    # FR_thread.run(ct)
             # 2
             else:
                 writer.write(frame)

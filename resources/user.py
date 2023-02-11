@@ -2,7 +2,6 @@ from email import message
 from flask_restful import Resource, reqparse, fields
 from models.user import UserModel
 from utils.file_handler import extract_and_save_faces, save_logo, delete_logo, save_file, delete_file
-from utils.face_detect import get_faces_paths_and_names, get_faces
 import bcrypt
 import werkzeug
 import uuid
@@ -142,6 +141,14 @@ class User(Resource):
 
         return {"message": "User Deleted successfully."}, 201
 
+
+class UserByName(Resource):
+    @classmethod
+    def get(cls, user_name):
+        user = UserModel.find_by_name(user_name)
+        if user:
+            return user.json()
+        return {"message": "User not found."}, 404
 
 class ChangePassword(Resource):
     @classmethod

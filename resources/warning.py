@@ -1,11 +1,7 @@
 from flask_restful import Resource, reqparse
 from models.warning import WarningModel
 from utils.file_handler import save_logo, delete_logo, delete_file
-from utils.face_detect import get_faces_paths_and_names, get_faces
 from utils.date_funcs import current_datetime
-import werkzeug
-import uuid
-
 
 class Warnings(Resource):
     def get(self):

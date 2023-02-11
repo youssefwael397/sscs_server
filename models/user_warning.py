@@ -23,6 +23,11 @@ class UserWarningModel(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).all()
+    
+
+    @classmethod
+    def checkDuplicate(cls, _user_id, _warning_id):
+        return cls.query.filter_by(user_id=_user_id, warning_id=_warning_id).all()
 
     @classmethod
     def find_by_user_id(cls, _id):

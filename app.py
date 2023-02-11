@@ -7,13 +7,16 @@ from db import db
 from models.user import UserModel
 from models.warning import WarningModel
 from models.user_warning import UserWarningModel
+# import api routes from resources
 from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning, CreateWarning
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning
+# import helpers
 from utils.file_handler import extract_and_save_faces
-from utils.face_detect import get_faces_paths_and_names, get_faces, open_face_detect_cam, open_RTC_violence
+from utils.face_detect import open_RTC_violence
 from utils.date_funcs import current_datetime
+# import flask_socketio to serve the project
 from flask_socketio import SocketIO, emit, send
 
 app = Flask(__name__, static_url_path='/static')
