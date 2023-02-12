@@ -1,3 +1,4 @@
+import cv2
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_restful import Api
@@ -11,7 +12,7 @@ from models.user_warning import UserWarningModel
 from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning, CreateWarning
 from resources.helloWorld import HelloWorld
-from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning
+from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning , WarningExtractFaces
 # import helpers
 from utils.file_handler import extract_and_save_faces
 from utils.face_detect import open_RTC_violence
@@ -20,7 +21,7 @@ from utils.date_funcs import current_datetime
 from flask_socketio import SocketIO, emit, send
 
 app = Flask(__name__, static_url_path='/static')
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+cors = CORS(app, resources={r"/api/": {"origins": ""}})
 api = Api(app)
 
 socketio = SocketIO(app, cors_allowed_origins='*')
@@ -28,10 +29,10 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db.init_app(app)
 
 @app.before_first_request
 def create_tables():
-    db.init_app(app)
     db.create_all()
 
 
@@ -47,9 +48,9 @@ api.add_resource(CreateWarning, '/api/warnings/create')
 api.add_resource(Warning, '/api/warnings/<int:warning_id>')
 # user_warnings
 api.add_resource(UserWarnings, '/api/user_warnings')
+api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_id>')
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
-
 # registered_faces_path = 'static/users/'
 # names, faces_paths = get_faces_paths_and_names(registered_faces_path)
 # faces = get_faces(faces_paths)

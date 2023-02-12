@@ -13,7 +13,7 @@ class Users(Resource):
         return {"users": [user.json() for user in UserModel.find_all()]}
 
 
-class UserRegister(Resource):
+class   UserRegister(Resource):
     # headers = {"Content-Type": "application/json; charset=utf-8"}
 
     parser = reqparse.RequestParser()

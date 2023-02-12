@@ -3,12 +3,12 @@ import os
 
 
 class UserWarningModel(db.Model):
-    __tablename__ = 'user_warnings'
+    _tablename_ = 'user_warnings'
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     warning_id = db.Column(db.Integer, db.ForeignKey('warnings.id'))
 
-    def __init__(self, user_id, warning_id):
+    def _init_(self, user_id, warning_id):
         self.date = user_id
         self.status = warning_id
 

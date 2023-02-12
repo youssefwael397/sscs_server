@@ -1,10 +1,14 @@
 from flask_restful import Resource, reqparse
 from models.user_warning import UserWarningModel
-from utils.file_handler import  save_logo, delete_logo, delete_file
+from models.warning import WarningModel
+from utils.faceRecThread import FaceRecognition
+from utils.file_handler import save_logo, delete_logo, delete_file
+
 
 class UserWarnings(Resource):
     def get(self):
         return {"user_warnings": [user_warning.json() for user_warning in UserWarningModel.find_all()]}
+
 
 class UserWarning(Resource):
     @classmethod
@@ -23,7 +27,18 @@ class UserWarning(Resource):
 class UserWarningByUser(Resource):
     @classmethod
     def get(cls, user_id):
-        Warnings = UserWarningModel.find_by_user_id(user_id)
-        if Warnings:
-            return Warnings.json()
+        user_warnings = UserWarningModel.find_by_user_id(user_id)
+        if user_warnings:
+            return user_warnings.json()
         return {"message": "This user don't have any violence actions."}, 404
+
+
+class WarningExtractFaces(Resource):
+    @classmethod
+    def get(cls, warning_id):
+        Warning = WarningModel.find_by_id(warning_id)
+        if Warning:
+            print("video name: ", Warning.video_name)
+            FR = FaceRecognition(Warning.video_name)
+            print(FR)
+        return {"user_warnings": [user_warning.json() for user_warning in UserWarningModel.find_by_warning_id(warning_id)]}

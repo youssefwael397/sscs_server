@@ -30,6 +30,10 @@ class WarningModel(db.Model):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
+    def find_by_video_name(cls, _video_name):
+        return cls.query.filter_by(video_name=_video_name).first()
+    
+    @classmethod
     def find_by_date(cls, date):
         return cls.query.filter_by(date=date).first()
     @classmethod

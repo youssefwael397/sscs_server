@@ -120,9 +120,9 @@ def open_RTC(faces, names, socketio):
 def open_RTC_violence(socketio):
     model = load_model('utils/violence_model.h5')
     print("loading model")
-
     max_v = 5
     v_count = 0
+
     frame_number = 0
     frames_list = []
     start_time = None
@@ -141,6 +141,7 @@ def open_RTC_violence(socketio):
         img = img.reshape(128, 128, 3) / 255
         predictions = model.predict(np.expand_dims(img, axis=0), verbose=0)
         preds = predictions > 0.5
+        # cv2.imshow('violence' , frame)
 
         # 1
         if len(frames_list) < 5:
@@ -162,23 +163,20 @@ def open_RTC_violence(socketio):
             print("ct: ", ct)
             # save warning video file to /static/warning
             writer = cv2.VideoWriter(
-                f'{warning_path}{file_name}.mp4', cv2.VideoWriter_fourcc(*'DIVX'), 5, (width, height))
+                f'{warning_path}{file_name}.mp4', cv2.VideoWriter_fourcc(*'DIVX'), 10, (width, height))
             print("warning video saved successfully")
             # save the video to warnings table to db
             data = {
-                "status": "Violence",
-                "video_name": f"{file_name}.mp4",
-                "date": ct,
+            "date": f"{current_datetime()}",
+            "status": "Violence",
+            "video_name": f"{file_name}.mp4",
             }
-
+            print(data)
             warn = WarningModel(**data)
-            try:
-                warn.save_to_db()
-                print("warning saved to db successfully")
-
-            except:
-                print("Error in save_to_db Warning video")
-
+            print("==========================================================")
+            print(warn)
+            warn.save_to_db()
+            print("Warning Created Successfully.")
             # FR_thread = FaceRecognition(f'{file_name}.mp4,')
             start_time = time.time()
             isRecording = True
@@ -201,7 +199,7 @@ def open_RTC_violence(socketio):
             # 2
             else:
                 writer.write(frame)
-
+            
             # if not isRecording and max_v == v_count:
             #     vid_uuid = uuid.uuid4()
             #     vid_path = f'{warning_path}{vid_uuid}.mp4'
@@ -385,3 +383,6 @@ def count_faces_from_video(video_path, faces, known_names):
 
 #         socketio.emit('rtc', frame)
 #         socketio.sleep(0)
+
+
+
