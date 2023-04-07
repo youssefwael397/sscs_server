@@ -13,6 +13,7 @@ from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning, CreateWarning
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning , WarningExtractFaces
+from resources.stream import Stream
 # import helpers
 from utils.file_handler import extract_and_save_faces
 from utils.face_detect import open_RTC_violence
@@ -51,6 +52,7 @@ api.add_resource(UserWarnings, '/api/user_warnings')
 api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_id>')
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
+api.add_resource(Stream, '/stream')
 # registered_faces_path = 'static/users/'
 # names, faces_paths = get_faces_paths_and_names(registered_faces_path)
 # faces = get_faces(faces_paths)
@@ -64,6 +66,14 @@ def test_connect():
     socketio.emit('connect', {'connected': True, 'name': 'Pyramids'})
 
 
+# if __name__ == '__main__':
+#     socketio.run(app, debug=True)
+#     # app.run(host='0.0.0.0', debug=True)
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
-    # app.run(host='0.0.0.0', debug=True)
+    host = "127.0.0.1"
+    port = 8000
+    debug = True
+    options = None
+    app.run(host, port, debug, options)
