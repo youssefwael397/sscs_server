@@ -2,6 +2,7 @@ from flask_restful import Resource, reqparse
 from models.warning import WarningModel
 from utils.file_handler import save_logo, delete_logo, delete_file
 from utils.date_funcs import current_datetime
+# from resources.stream import create_warning_video
 
 class Warnings(Resource):
     def get(self):
@@ -30,19 +31,8 @@ class Warning(Resource):
         return {"message": "Warning Deleted successfully."}, 201
 
 
-class CreateWarning(Resource):
-    @classmethod
-    def post(cls):
-        vid_uuid = "8cf15235-8bb0-43d9-bc49-ef3026cff22c.mp4"
-        data = {
-            "date": f"{current_datetime()}",
-            "status": "Violence",
-            "video_name": f"{vid_uuid}",
-        }
-        warn = WarningModel(**data)
-        try:
-            warn.save_to_db()
-            return {"message": "Warning Created Successfully."}
-        except:
-            print("Error saving warning to db")
-            return {"message": "Error saving warning to db."}, 404
+# class CreateWarning(Resource):
+#     @classmethod
+#     def post(cls):
+#         create_warning_video()
+#         return {"message": "Warning Created Successfully."} 

@@ -1,4 +1,6 @@
 from datetime import datetime
 
 def current_datetime():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    formatted_date = datetime.now.strftime("%A-%m-%Y %H:%M:%S")
+    return formatted_date
+
