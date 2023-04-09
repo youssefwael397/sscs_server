@@ -4,6 +4,7 @@ from keras.models import load_model
 from datetime import datetime
 from models.warning import WarningModel
 from utils.date_funcs import current_datetime
+from utils.face_detect import FaceRecognition
 from utils.services import create_warning_video
 import cv2
 import base64
@@ -32,8 +33,6 @@ frames_list_size = 5
 max_v = 3
 v_count = 0
 writer = None
-
-
 
 def violence_detection(frame):
     global model
@@ -83,11 +82,14 @@ def record_violence_video(frame, is_violence):
             # save violence video in db 
             create_warning_video(file_name)
 
+            # create a new thread to perform face recognition
+            face_thread = threading.Thread(target=FaceRecognition, args=(f'{file_name}.mp4',))
+            face_thread.start()
+
     # If isRecording is True and the recording time has not exceeded 10 seconds, write the current frame to the video
     elif isRecording:
         # print('recording')
         writer.write(frame)
-
 
 def generate():
     # grab global references to the lock variable
@@ -119,7 +121,6 @@ def generate():
             # call a function that violence detection 
             is_violence = violence_detection(frame)
             record_violence_video(frame, is_violence)
-            # then call a function that face recognition 
 
             # add text to the frame 
             cv2.putText(frame, f'Violence : {is_violence}', (10, 50),
