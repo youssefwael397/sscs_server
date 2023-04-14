@@ -10,7 +10,10 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+    
+    @app.before_first_request
+    def create_tables():
+        db.create_all()
     db.init_app(app)
 
     return app

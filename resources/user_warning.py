@@ -9,6 +9,13 @@ class UserWarnings(Resource):
     def get(self):
         return {"user_warnings": [user_warning.json() for user_warning in UserWarningModel.find_all()]}
 
+class WarningByUserId(Resource):
+    def get(self , user_id):
+        return UserWarningModel.get_warnings_by_user_id(user_id)
+
+class UsersByWarningId(Resource):
+    def get(self , warning_id):
+        return UserWarningModel.get_users_by_warning_id(warning_id)
 
 class UserWarning(Resource):
     @classmethod

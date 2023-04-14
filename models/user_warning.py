@@ -1,6 +1,7 @@
 from db import db
-import os
-
+from models.warning import WarningModel
+from models.user import UserModel
+from flask import jsonify
 
 class UserWarningModel(db.Model):
     _tablename_ = 'user_warnings'
@@ -41,6 +42,7 @@ class UserWarningModel(db.Model):
     def find_all(cls):
         return cls.query.all()
 
+    
     def save_to_db(self):
         # SQL_ALCHEMY automatically checks if the data is changed, so takes care of both insert
         # and update
@@ -50,3 +52,48 @@ class UserWarningModel(db.Model):
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
+
+
+    def get_warnings_by_user_id(user_id):
+        user = UserModel.query.filter_by(id=user_id).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_warnings = UserWarningModel.query.filter_by(user_id=user.id).all()
+
+        warning_details = []
+
+        for user_warning in user_warnings:
+            warning = WarningModel.query.filter_by(id=user_warning.warning_id).first()
+
+            warning_info = {
+                'id': warning.id,
+                'date': warning.date,
+                'status': warning.status,
+                'video_name': warning.video_name
+            }
+            warning_details.append(warning_info)
+
+        return jsonify(warning_details)
+
+
+    def get_users_by_warning_id(warning_id):
+        warning = WarningModel.query.filter_by(id=warning_id).first()
+
+        if not warning:
+            return jsonify({'error': 'Warning not found'}), 404
+
+        warning_users = UserWarningModel.query.filter_by(warning_id=warning.id).all()
+
+        user_details = []
+
+        for warning_user in warning_users:
+            user = UserModel.query.filter_by(id=warning_user.user_id).first()
+
+            user_dict = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+            user_details.append(user_dict)
+        return jsonify(user_details)

@@ -11,7 +11,7 @@ from models.user_warning import UserWarningModel
 from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning
 from resources.helloWorld import HelloWorld
-from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning, WarningExtractFaces
+from resources.user_warning import UserWarningByUser,UsersByWarningId,WarningByUserId , UserWarnings, UserWarning, WarningExtractFaces
 from resources.stream import Stream, StopStream, StartStream
 
 
@@ -30,12 +30,19 @@ api.add_resource(Warnings, '/api/warnings')
 api.add_resource(Warning, '/api/warnings/<int:warning_id>')
 # user_warnings
 api.add_resource(UserWarnings, '/api/user_warnings')
+# get the details of warnings associated with a specific user
+api.add_resource(WarningByUserId , '/api/user_warnings/warnings/<int:user_id>')
+# get users details of a warning by id 
+api.add_resource(UsersByWarningId , '/api/user_warnings/users/<int:warning_id>')
+
 api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_id>')
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
-api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
+# api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
 api.add_resource(Stream, '/stream')
 api.add_resource(StartStream, '/stream/start')
 api.add_resource(StopStream, '/stream/stop')
+
+
 @app.route('/video/<path:filename>')
 def get_video(filename):
     path = f'{filename}'
