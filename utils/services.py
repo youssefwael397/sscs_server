@@ -52,24 +52,27 @@ def create_user_warning(name, warning_id, frame):
             new_user = UserModel(**data)
             try:
                 new_user.save_to_db()
-                print("warning saved to db")
+                print("user saved to db")
             except:
-                print("Error saving warning to db")
+                print("Error saving user to db")
     
 
     # insert user_id and warning_id to user_warnings
-    user = UserModel.find_by_name(current_name)
     with app.app_context():
-        data = {
-            "user_id": user.id,
-            "warning_id": warning_id,
-        }
-        user_warn = UserWarningModel(**data)
-        try:
-            user_warn.save_to_db()
-            print("user warning successfully saved")
-        except Exception as e:
-            print("error while saving user warning: ", e)
+        user = UserModel.find_by_username(current_name)
+        print(user)
+        user_warn_exist = UserWarningModel.checkDuplicate(user.id,warning_id)
+        if not user_warn_exist:
+            data = {
+                "user_id": user.id,
+                "warning_id": warning_id,
+            }
+            user_warn = UserWarningModel(**data)
+            try:
+                user_warn.save_to_db()
+                print("user warning successfully saved")
+            except Exception as e:
+                print("error while saving user warning: ", e)
 
 
         

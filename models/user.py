@@ -18,11 +18,12 @@ class UserModel(db.Model):
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'photo': f'static/users/{self.username}/1.jpg',
         }
 
     @classmethod
-    def find_by_username(cls, username):
-        return cls.query.filter_by(username=username).first()
+    def find_by_username(cls, _username):
+        return cls.query.filter_by(username=_username).first()
 
     @classmethod
     def find_by_email(cls, email):

@@ -38,8 +38,12 @@ def extract_and_save_faces(dir_path, file_name):
         detected_faces = face_recognition.face_locations(frame_rgb)
 
         if len(detected_faces):
+            for detected_face in detected_faces:
+                top, right, bottom, left = detected_face
+                cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+                
             cv2.imwrite(f'{dir_path}/{count}.jpg', frame)
-            count += 1
+        count += 1
 
     # close the video capture
     cv2.destroyAllWindows()

@@ -1,5 +1,6 @@
 from factory import create_app
 from flask_restful import Api
+from flask import send_file
 
 # import models to create at runtime
 from models.user import UserModel
@@ -11,7 +12,7 @@ from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser, UserWarnings, UserWarning, WarningExtractFaces
-from resources.stream import Stream
+from resources.stream import Stream, StopStream, StartStream
 
 
 app = create_app()
@@ -33,6 +34,13 @@ api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_i
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')
 api.add_resource(Stream, '/stream')
+api.add_resource(StartStream, '/stream/start')
+api.add_resource(StopStream, '/stream/stop')
+@app.route('/video/<path:filename>')
+def get_video(filename):
+    path = f'{filename}'
+    print(filename)
+    return send_file(path, as_attachment=True)
 
 if __name__ == '__main__':
     host = "127.0.0.1"

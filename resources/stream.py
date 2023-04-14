@@ -33,6 +33,7 @@ frames_list_size = 5
 max_v = 3
 v_count = 0
 writer = None
+thread_number = 0
 
 def violence_detection(frame):
     global model
@@ -45,7 +46,7 @@ def violence_detection(frame):
     return preds[0][0]
 
 def record_violence_video(frame, is_violence):
-    global warning_path, file_name, isRecording, frames_list, start_time, v_count, writer, max_v, vc
+    global warning_path, file_name, isRecording, frames_list, start_time, v_count, writer, max_v, vc, thread_number
 
     width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -83,8 +84,10 @@ def record_violence_video(frame, is_violence):
             create_warning_video(file_name)
 
             # create a new thread to perform face recognition
+            thread_number += 1
             face_thread = threading.Thread(target=FaceRecognition, args=(f'{file_name}.mp4',))
             face_thread.start()
+            print('thread_number: {0}'.format(thread_number))
 
     # If isRecording is True and the recording time has not exceeded 10 seconds, write the current frame to the video
     elif isRecording:
@@ -98,10 +101,10 @@ def generate():
     global writer
 
     print('vc', vc)
-    vc = cv2.VideoCapture('static/full_v.mp4')
+    vc = cv2.VideoCapture(0)  # static/john_cena_VS_the_rock_Trim.mp4
 
     # check camera is open
-    if vc.isOpened():
+    if vc and vc.isOpened():
         rval, frame = vc.read()
         print('vc is opened')
     else:
@@ -138,9 +141,27 @@ def generate():
     # release the camera
     if writer:
         writer.release()
-    vc.release()
+    if vc:
+        vc.release()
 
 
 class Stream(Resource):
     def get(self):
         return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+
+class StartStream(Resource):
+    def get(self):
+        global vc
+        if vc:
+            return {"message": "Stream is already started."}, 404
+        return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+class StopStream(Resource):
+    def get(self):
+        global vc
+        if vc:
+            vc.release()
+            vc = None
+            return {"message": "Stream is being closed successfully."}, 200
+        return {"message": "Stream is already closed."}, 404

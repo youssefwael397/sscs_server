@@ -18,7 +18,7 @@ class WarningModel(db.Model):
         return {
             'id': self.id,
             'status': self.status,
-            'video_name': self.video_name,
+            'video_name': f'static/warnings/{self.video_name}',
             'date': self.date,
         }
 

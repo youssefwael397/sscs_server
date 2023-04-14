@@ -6,7 +6,7 @@ from db import db
 
 def create_app():
     app = Flask(__name__, static_url_path='/static')
-    cors = CORS(app, resources={r"/api/": {"origins": ""}})
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
