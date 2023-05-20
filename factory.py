@@ -10,6 +10,7 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['VIDEO_FOLDER'] = 'static/warnings'
     
     @app.before_first_request
     def create_tables():

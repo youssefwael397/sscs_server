@@ -1,7 +1,9 @@
 from flask_restful import Resource, reqparse
 from models.warning import WarningModel
 from utils.file_handler import save_logo, delete_logo, delete_file
+from flask import send_from_directory
 from utils.date_funcs import current_datetime
+from factory import create_app
 # from resources.stream import create_warning_video
 
 class Warnings(Resource):
@@ -29,6 +31,13 @@ class Warning(Resource):
             return {"message": "An error occurred while deleting the warning."}, 500
 
         return {"message": "Warning Deleted successfully."}, 201
+
+class WarningsVideo(Resource):
+    def get(self, filename):
+        app = create_app()
+        with app.app_context():
+            print(filename)     
+            return send_from_directory(app.config['VIDEO_FOLDER'], filename)
 
 
 # class CreateWarning(Resource):

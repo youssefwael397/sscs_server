@@ -15,6 +15,9 @@ class WarningByUserId(Resource):
 
 class UsersByWarningId(Resource):
     def get(self , warning_id):
+        warning = WarningModel.find_by_id(warning_id)
+        if not warning: 
+            return {'message': 'Warning not found'}, 404
         return UserWarningModel.get_users_by_warning_id(warning_id)
 
 class UserWarning(Resource):

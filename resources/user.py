@@ -1,6 +1,9 @@
 from email import message
+from flask import jsonify
 from flask_restful import Resource, reqparse, fields
 from models.user import UserModel
+from models.user_warning import UserWarningModel
+from models.warning import WarningModel
 from utils.file_handler import extract_and_save_faces, save_logo, delete_logo, save_file, delete_file
 import bcrypt
 import werkzeug
@@ -13,7 +16,7 @@ class Users(Resource):
         return {"users": [user.json() for user in UserModel.find_all()]}
 
 
-class   UserRegister(Resource):
+class UserRegister(Resource):
     # headers = {"Content-Type": "application/json; charset=utf-8"}
 
     parser = reqparse.RequestParser()
@@ -55,13 +58,15 @@ class   UserRegister(Resource):
             f"static/users/{username}", file_name)
         print("is_valid : ", is_valid)
 
-        # if not is_valid:
-        #     try:
-        #         shutil.rmtree(f'static/users/{username}')
-        #     except:
-        #         print("the directory does not exist")
+        if not is_valid:
+            try:
+                os.rmdir(f'static/users/{username}')
+                print(f'static/users/{username} has been deleted.')
+            except:
+                print("Failed to delete the directory or it is not empty.")
+                # Handle the exception as needed
 
-        #     return {message: 'You didn\'t show your face purely.'}, 400
+            return {"message": 'The video attatched does not contain your face.'}, 400
 
         # modifying the data before save_to_db
         data = {
@@ -83,9 +88,29 @@ class User(Resource):
     @classmethod
     def get(cls, user_id):
         user = UserModel.find_by_id(user_id)
-        if user:
-            return user.json()
-        return {"message": "User not found."}, 404
+        if not user:
+            return {"message": "User not found."}, 404
+
+        user_warnings = UserWarningModel.query.filter_by(user_id=user.id).all()
+        warning_details = []
+
+        for user_warning in user_warnings:
+            warning = WarningModel.query.filter_by(id=user_warning.warning_id).first()
+            warning_info = {
+                'id': warning.id,
+                'date': warning.date,
+                'status': warning.status,
+                'video_name': warning.video_name
+            }
+            warning_details.append(warning_info)
+
+        user_info = user.json()
+        user_data = {
+            'user': user_info,
+            'warnings': warning_details
+        }
+        
+        return user_data
 
     @classmethod
     def put(cls, user_id):
