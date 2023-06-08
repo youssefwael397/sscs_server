@@ -11,7 +11,6 @@ import uuid
 
 from utils.face_detect import FaceRecognition
 from utils.services import create_warning_video
-from utils.notification import send_violence_notification
 
 model_path = 'utils/violence_model.h5'
 model = tf.keras.models.load_model(model_path)
@@ -24,8 +23,8 @@ vc = None
 frames_list = []
 isRecording = False
 start_time = None
-frames_list_size = 5
-max_v = 3
+frames_list_size = 10
+max_v = 6
 writer = None
 thread_number = 0
 
@@ -38,8 +37,8 @@ def violence_detection(frame):
     return predictions[0][0] > 0.5
 
 
-def record_violence_video(vc, frame, is_violence):
-    global warning_path, file_name, isRecording, frames_list, start_time, writer, max_v, thread_number
+def record_violence_video(frame, is_violence):
+    global warning_path, file_name, isRecording, frames_list, start_time, writer, max_v, vc, thread_number
 
     width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -58,8 +57,6 @@ def record_violence_video(vc, frame, is_violence):
         writer = cv2.VideoWriter(f'{warning_path}{file_name}.mp4', fourcc, 20, (width, height))
         start_time = time.time()
         isRecording = True
-       
-
 
     # If isRecording is True and the recording time has exceeded 10 seconds
     if isRecording and time.time() - start_time > 10:
@@ -73,12 +70,6 @@ def record_violence_video(vc, frame, is_violence):
             isRecording = False
             # save violence video in db
             create_warning_video(file_name)
-            # send warning
-            message = '''WARNING!
-            There is a violent behavior detected. 
-            Take an action.
-            '''
-            send_violence_notification(message)
             # create a new thread to perform face recognition
             thread_number += 1
             face_thread = threading.Thread(target=FaceRecognition, args=(f'{file_name}.mp4',))
@@ -90,137 +81,54 @@ def record_violence_video(vc, frame, is_violence):
         writer.write(frame)
 
 
-# def generate():
-#     global lock, vc, writer
+def generate():
+    global lock, vc, writer
+    vc = cv2.VideoCapture(0)
 
-#     while True:
-#         with lock:
-#             rval, frame = vc.read()
+    with lock:
+        while True:
+            if not vc: 
+                break
+            rval, frame = vc.read() 
 
-#             # If camera is not open or blank frame, break the loop
-#             if not vc or not rval or frame is None:
-#                 break
+            # If camera is not open or blank frame, break the loop
+            if  not rval or frame is None:
+                break
 
-#             is_violence = violence_detection(frame)
-#             record_violence_video(frame, is_violence)
+            is_violence = violence_detection(frame)
+            record_violence_video(frame, is_violence)
 
-#             # Add text to the frame
-#             cv2.putText(frame, f'Violence: {is_violence}', (10, 50),
-#                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, 2)
+            # Add text to the frame
+            cv2.putText(frame, f'Violence: {is_violence}', (10, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, 2)
 
-#             # Encode the frame in JPEG format
-#             _, encodedImage = cv2.imencode(".jpg", frame)
+            # Encode the frame in JPEG format
+            _, encodedImage = cv2.imencode(".jpg", frame)
 
-#         # Yield the output frame in byte format
-#         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
-
-
-class VideoStream:
-    def __init__(self):
-        self.lock = threading.Lock()
-        self.vc = None
-
-    def start_stream(self):
-        if self.vc is None:
-            self.vc = cv2.VideoCapture(0)  # utils/full_v.mp4 / john_cena_VS_the_rock_Trim.mp4
-
-    def stop_stream(self):
-        if self.vc:
-            self.vc.release()
-
-        self.vc = None
-
-
-    def generate_frames(self):
-        frame_count = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
-        current_frame = 0
-
-        while current_frame < frame_count:
-            with self.lock:
-                if self.vc is None:
-                    break
-
-                rval, frame = self.vc.read()
-
-                if not rval or frame is None:
-                    break
-
-                is_violence = violence_detection(frame)
-                record_violence_video(self.vc, frame, is_violence)
-
-                cv2.putText(frame, f'Violence: {is_violence}', (10, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, 2)
-
-                _, encoded_image = cv2.imencode(".jpg", frame)
-
-            current_frame += 1
-            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_image) + b'\r\n')
-
-
-    # def generate_frames(self):
-    #     while True:
-    #         with self.lock:
-    #             if self.vc is None:
-    #                 break
-
-    #             rval, frame = self.vc.read()
-
-    #             # If camera is not open or blank frame, break the loop
-    #             if not self.vc or not rval or frame is None:
-    #                 break
-
-                
-    #             is_violence = violence_detection(frame)
-    #             record_violence_video(self.vc, frame, is_violence)
-
-                
-    #             # # Add text to the frame
-    #             cv2.putText(frame, f'Violence: {is_violence}', (10, 50),
-    #                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, 2)
-
-    #             # Encode the frame in JPEG format
-    #             _, encoded_image = cv2.imencode(".jpg", frame)
-
-    #         # Yield the output frame in byte format
-    #         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_image) + b'\r\n')
-
-
-# class Stream(Resource):
-#     def get(self):
-#         return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
+            # Yield the output frame in byte format
+            yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
 
 
 class Stream(Resource):
-    def __init__(self, video_stream):
-        self.video_stream = video_stream
-
     def get(self):
-        if self.video_stream.vc is None:
-            self.video_stream.start_stream()
-            return Response(self.video_stream.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-        else:
-            return {'message': 'Video stream is already running'}
+        return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 class StartStream(Resource):
-    def __init__(self, video_stream):
-        self.video_stream = video_stream
-
     def get(self):
-        if self.video_stream.vc is None:
-            self.video_stream.start_stream()
-            return {'message': 'Video stream started'}
-        else:
-            return {'message': 'Video stream is already running'}
+        global vc
+        if vc:
+            return {"message": "Stream is already started."}, 404
+        # static/john_cena_VS_the_rock_Trim.mp4
+        vc = cv2.VideoCapture(0)
+        return {"message": "Started video streaming."}
 
-
+    
 class StopStream(Resource):
-    def __init__(self, video_stream):
-        self.video_stream = video_stream
-
     def get(self):
-        if self.video_stream.vc:
-            self.video_stream.stop_stream()
-            return {'message': 'Video stream stopped'}
-        else:
-            return {'message': 'Video stream is already stopped'}
+        global vc
+        if vc:
+            vc.release()
+            vc = None
+            return {"message": "Stream is being closed successfully."}, 200
+        return {"message": "Stream is already closed."}, 404

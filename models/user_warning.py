@@ -79,21 +79,31 @@ class UserWarningModel(db.Model):
 
     def get_users_by_warning_id(warning_id):
         warning = WarningModel.query.filter_by(id=warning_id).first()
-
+        warning_info={
+        "date" : warning.date , 
+        "video_name" : warning.video_name ,
+        "status" : warning.status
+        }
         if not warning:
             return jsonify({'error': 'Warning not found'}), 404
 
         warning_users = UserWarningModel.query.filter_by(warning_id=warning.id).all()
 
         user_details = []
-
+        
         for warning_user in warning_users:
             user = UserModel.query.filter_by(id=warning_user.user_id).first()
 
             user_dict = {
                 'id': user.id,
                 'username': user.username,
-                'email': user.email
+                'email': user.email , 
+                'photo': f'static/users/{user.username}/1.jpg',
             }
             user_details.append(user_dict)
-        return jsonify(user_details)
+
+        res = {
+            'warning_info' : warning_info , 
+            'user_details' : user_details
+        }
+        return jsonify(res)

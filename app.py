@@ -14,7 +14,7 @@ from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning , WarningsVideo
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser,UsersByWarningId,WarningByUserId , UserWarnings, UserWarning, WarningExtractFaces
-from resources.stream import VideoStream, Stream, StopStream, StartStream
+from resources.stream import Stream, StopStream, StartStream
 
 
 app = create_app()
@@ -42,10 +42,11 @@ api.add_resource(UsersByWarningId , '/api/user_warnings/users/<int:warning_id>')
 api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_id>')
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 # api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')   
-video_stream = VideoStream()
-api.add_resource(Stream, '/stream', resource_class_kwargs={'video_stream': video_stream})
-api.add_resource(StartStream, '/stream/start', resource_class_kwargs={'video_stream': video_stream})
-api.add_resource(StopStream, '/stream/stop', resource_class_kwargs={'video_stream': video_stream})
+# video_stream = VideoStream()
+api.add_resource(Stream, '/stream')
+# api.add_resource(StartStream, '/stream/start')
+# api.add_resource(StopStream, '/stream/stop')
+
 
 # send_violence_notification()
 
