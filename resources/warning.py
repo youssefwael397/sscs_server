@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
 from models.warning import WarningModel
-from utils.file_handler import save_logo, delete_logo, delete_file
+from utils.file_handler import save_logo, delete_file
 from flask import send_from_directory
 from utils.date_funcs import current_datetime
 from factory import create_app

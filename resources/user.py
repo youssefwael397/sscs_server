@@ -4,9 +4,10 @@ from flask_restful import Resource, reqparse, fields
 from models.user import UserModel
 from models.user_warning import UserWarningModel
 from models.warning import WarningModel
-from utils.file_handler import extract_and_save_faces, save_logo, delete_logo, save_file, delete_file
+from utils.file_handler import  delete_folder, extract_and_save_faces, save_logo, save_file, delete_file
 import bcrypt
 import werkzeug
+from db import db
 import uuid
 import os
 import shutil
@@ -138,7 +139,7 @@ class User(Resource):
         if data['logo']:
 
             if user.logo:
-                delete_logo(user.logo)
+                delete_folder(user.username)
 
             save_logo(data['logo'], file_name)
             user.logo = file_name
@@ -155,17 +156,27 @@ class User(Resource):
 
     @classmethod
     def delete(cls, user_id):
-        user = UserModel.find_by_id(user_id)
+        user = UserModel.find_by_id(user_id) 
+        user_warnings = UserWarningModel.find_by_user_id(user_id) 
         if not user:
             return {"message": "User not found."}, 404
-        try:
-            user.delete_from_db()
-            delete_logo(user.logo)
-        except:
-            return {"message": "An error occurred while deleting the user."}, 500
+        # try:
+        if user_warnings : 
+            for user_warning in user_warnings:
+               user_warning.delete_from_db()
+        
+        user.delete_from_db()
+        delete_folder(user.username)
+        # except:
+        #     return {"message": "An error occurred while deleting the user."}, 500
 
         return {"message": "User Deleted successfully."}, 201
 
+
+class DeleteUser (Resource):
+    @classmethod
+    def delete(cls, user_id):
+        User.delete(user_id)
 
 class UserByName(Resource):
     @classmethod
@@ -288,3 +299,6 @@ class FaceCounter(Resource):
             return {"message": "An error occurred while creating the user."}, 500
 
         return {"message": "User created successfully."}, 201
+
+
+

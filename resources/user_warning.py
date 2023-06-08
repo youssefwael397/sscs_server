@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 from models.user_warning import UserWarningModel
 from models.warning import WarningModel
 from utils.faceRecThread import FaceRecognition
-from utils.file_handler import save_logo, delete_logo, delete_file
+from utils.file_handler import save_logo, delete_file
 
 
 class UserWarnings(Resource):

@@ -1,15 +1,23 @@
 import os
 import face_recognition
 import cv2
-
+import shutil
 
 def save_logo(logo, file_name):
     logo.save(f"static/users/logo/{file_name}")
 
 
-def delete_logo(logo):
-    if logo and os.path.exists(f"static/users/logo/{logo}"):
-        os.remove(f"static/users/logo/{logo}")
+def delete_folder(folder_name):
+    folder_path = os.path.join('static', 'users', folder_name)
+    try:
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+            print("Folder removed successfully.")
+        else:
+            print("Folder does not exist.")
+    except OSError as e:
+        print("Error occurred while deleting folder")
+
 
 
 def save_file(file, file_name, path):
