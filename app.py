@@ -1,7 +1,9 @@
 from factory import create_app
 from flask_restful import Api
 from flask import send_file
-from utils.smtp_service import send_violence_notification
+# from utils.smtp_service import send_violence_notification
+from utils.notification import send_violence_notification
+
 # import models to create at runtime
 from models.user import UserModel
 from models.warning import WarningModel
@@ -12,7 +14,7 @@ from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning , WarningsVideo
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser,UsersByWarningId,WarningByUserId , UserWarnings, UserWarning, WarningExtractFaces
-from resources.stream import Stream, StopStream, StartStream
+from resources.stream import VideoStream, Stream, StopStream, StartStream
 
 
 app = create_app()
@@ -40,9 +42,10 @@ api.add_resource(UsersByWarningId , '/api/user_warnings/users/<int:warning_id>')
 api.add_resource(WarningExtractFaces, '/api/user_warnings/extract/<int:warning_id>')
 api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 # api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')   
-api.add_resource(Stream, '/stream')
-api.add_resource(StartStream, '/stream/start')
-api.add_resource(StopStream, '/stream/stop')
+video_stream = VideoStream()
+api.add_resource(Stream, '/stream', resource_class_kwargs={'video_stream': video_stream})
+api.add_resource(StartStream, '/stream/start', resource_class_kwargs={'video_stream': video_stream})
+api.add_resource(StopStream, '/stream/stop', resource_class_kwargs={'video_stream': video_stream})
 
 # send_violence_notification()
 
@@ -57,4 +60,4 @@ if __name__ == '__main__':
     port = 8000
     debug = True
     options = None
-    app.run(host, port, debug, options)
+    app.run(host, port, debug, options, threaded=True)
