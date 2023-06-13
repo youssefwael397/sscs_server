@@ -193,13 +193,13 @@ def generate():
 
             yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
 
-        if writer is not None:
-            writer.release()
-            writer = None
+        # if writer is not None:
+        #     writer.release()
+        #     writer = None
 
-        if vc is not None:
-            vc.release()
-            vc = None
+        # if vc is not None:
+        #     vc.release()
+        #     vc = None
         
         print("Streaming stopped")
 
