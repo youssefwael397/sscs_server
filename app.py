@@ -14,8 +14,8 @@ from resources.user import UserRegister, Users, User
 from resources.warning import Warnings, Warning , WarningsVideo
 from resources.helloWorld import HelloWorld
 from resources.user_warning import UserWarningByUser,UsersByWarningId,WarningByUserId , UserWarnings, UserWarning, WarningExtractFaces
-# from resources.stream import Stream, StopStream, StartStream
-from resources.new_stream import Stream
+from resources.stream import Stream, StopStream, StartStream
+# from resources.new_stream import Stream
 
 
 

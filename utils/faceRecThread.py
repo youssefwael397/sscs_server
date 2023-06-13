@@ -78,7 +78,7 @@ def FaceRecognition(file_name):
 
                 name = 'unknown'
                 face_distance = face_recognition.face_distance(faces, encoding)
-                print(face_distance)
+                # print(face_distance)
                 best_match_index = np.argmin(face_distance)
 
                 if results[best_match_index]:
