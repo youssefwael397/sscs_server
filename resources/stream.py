@@ -124,7 +124,7 @@ def performVideoWriting(frame):
         writer = cv2.VideoWriter(
             f'{warning_path}{file_name}.mp4', fourcc, 20, (width, height))
 
-        print("create new video writer: ", writer)
+        print("create new video writer")
 
         start_time = time.time()
         isRecording = True
@@ -172,7 +172,7 @@ def generate():
 
     print("Generating")
     # "static/john_cena_VS_the_rock_Trim.mp4"
-    vc = cv2.VideoCapture("static/خناقه2.mp4")
+    vc = cv2.VideoCapture("static/new_violence.mp4")
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         while True:
