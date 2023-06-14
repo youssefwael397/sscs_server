@@ -46,8 +46,8 @@ api.add_resource(UserWarning, '/api/user_warnings/<int:user_warning_id>')
 # api.add_resource(UserWarningByUser, '/api/user_warnings/<int:user_id>')   
 # video_stream = VideoStream()
 api.add_resource(Stream, '/stream')
+api.add_resource(StopStream, '/stream/stop')
 # api.add_resource(StartStream, '/stream/start')
-# api.add_resource(StopStream, '/stream/stop')
 
 
 # send_violence_notification()

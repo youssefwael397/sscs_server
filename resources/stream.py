@@ -11,7 +11,7 @@ import uuid
 import concurrent.futures
 from functools import partial
 import multiprocessing
-
+from utils.notification import send_violence_notification
 
 from utils.faceRecThread import FaceRecognition
 from utils.services import create_warning_video
@@ -98,7 +98,6 @@ def performViolenceDetection(frame):
     global vc, writer, warning_path, file_name, isRecording, frames_list, start_time, max_v, thread_number, writer_lock
 
     is_violence = violence_detection(frame)
-    # print("is_violence: ", is_violence)
 
     # Append the current frame to the frames_list
     with lock:
@@ -113,6 +112,7 @@ def performViolenceDetection(frame):
 
 def performVideoWriting(frame):
     global vc, writer, warning_path, file_name, isRecording, frames_list, start_time, max_v, thread_number, lock
+
 
     width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -150,12 +150,12 @@ def performVideoWriting(frame):
             isRecording = False
             # Save violence video in the database
             create_warning_video(file_name)
+            # send warning names
+            message = "⚠⚠⚠⚠⚠\nWARNING!\nThere is a violent behavior detected.\nTake an action."
+            send_violence_notification(message)
             # Create a new thread to perform face recognition
             face_process = multiprocessing.Process(target=FaceRecognition, args=(f'{file_name}.mp4',))
             face_process.start()
-            # with lock:
-            #     thread_number += 1
-            #     # Create a new process to perform face recognition
             print("after calling face recognition")
 
     # If isRecording is True and the recording time has not exceeded 10 seconds, write the current frame to the video
@@ -167,12 +167,15 @@ def performVideoWriting(frame):
             print('error writing frame: ', e)
 
 
+def printName(frame):
+    print("name")
+
 def generate():
     global lock, vc, writer
 
     print("Generating")
-    # "static/john_cena_VS_the_rock_Trim.mp4"
-    vc = cv2.VideoCapture("static/new_violence.mp4")
+    # "static/new_violence.mp4"
+    vc = cv2.VideoCapture(0)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         while True:
@@ -189,17 +192,11 @@ def generate():
             # Execute the performViolenceDetection function asynchronously in a separate thread
             executor.submit(performViolenceDetection, frame.copy())
 
+            frame = cv2.flip(frame, 1)
+
             _, encodedImage = cv2.imencode(".jpg", frame)
 
             yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
-
-        # if writer is not None:
-        #     writer.release()
-        #     writer = None
-
-        # if vc is not None:
-        #     vc.release()
-        #     vc = None
         
         print("Streaming stopped")
 

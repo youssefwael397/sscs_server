@@ -1,3 +1,4 @@
+import concurrent.futures
 import threading
 import cv2
 import glob
@@ -12,7 +13,6 @@ from utils.services import create_user_warning
 from factory import create_app
 from utils.notification import send_violence_notification
 from utils.date_funcs import current_datetime
-
 
 
 def get_faces_paths_and_names(images_path):
@@ -41,28 +41,30 @@ def get_faces(faces_paths):
     return faces
 
 
+registered_faces_path = 'static/users/'
+warning_path = "static/warnings/"
+
+# names, faces_paths = get_faces_paths_and_names(registered_faces_path)
+# faces = get_faces(faces_paths)
+# recognized_names = []
+
+names = []
+faces_paths = []
+faces = []
+recognized_names = []
+
+
 def FaceRecognition(file_name):
+    global names, faces, faces_paths, warning_path
+
     print("start FaceRecognition")
     app = create_app()
     with app.app_context():
         warning = WarningModel.find_by_video_name(file_name)
 
-    registered_faces_path = 'static/users/'
-    warning_path = "static/warnings/"
-
-    names, faces_paths = get_faces_paths_and_names(registered_faces_path)
-    faces = get_faces(faces_paths)
-    recognized_names = []
-
     vc = cv2.VideoCapture(f'{warning_path}{file_name}')
 
-    while vc.isOpened():
-        ret, frame = vc.read()
-
-        if not ret:  # or count == max_count:
-            break
-
-        # BGR => Blue Green Red
+    def process_frame(frame):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         detected_faces = face_recognition.face_locations(frame_rgb)
 
@@ -78,17 +80,28 @@ def FaceRecognition(file_name):
 
                 name = 'unknown'
                 face_distance = face_recognition.face_distance(faces, encoding)
-                # print(face_distance)
                 best_match_index = np.argmin(face_distance)
 
                 if results[best_match_index]:
                     name = names[best_match_index]
 
-                print("name: ", name)
+                # print("name: ", name)
                 # create a new user warning record in db
                 if name != 'unknown' and name not in recognized_names:
                     recognized_names.append(name)
+                    # Commented out for testing
                     create_user_warning(name, warning.id, frame)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        while vc.isOpened():
+            ret, frame = vc.read()
+
+            if not ret:
+                break
+
+            executor.submit(process_frame, frame)
+            
+    print("recognized_names: ", recognized_names)
 
     # send warning names
     message = "Warning detected users:\n"
@@ -97,6 +110,4 @@ def FaceRecognition(file_name):
     message += f"performing a violent action at {current_datetime()}"
     send_violence_notification(message)
 
-    # close the video capture
-    # cv2.destroyAllWindows()
     vc.release()
